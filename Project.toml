@@ -1,0 +1,13 @@
+name = "ESDLHelpers"
+uuid = "2171ab4d-2a3a-435d-9e42-c7adf279ac2a"
+authors = ["Felix Cremer"]
+version = "0.1.0"
+
+[compat]
+julia = "1.3.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
