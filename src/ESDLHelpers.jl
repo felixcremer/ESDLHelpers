@@ -5,7 +5,8 @@ using Statistics
 using RecurrenceAnalysis
 using DataStructures
 using StatsBase:skewness, kurtosis, mad
-#using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
+using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
+using LombScargle
 
 """
 timestats(cube, )
@@ -35,7 +36,46 @@ function ctimestats!(xout, xin, funcs)
     xout .=stats
 end
 
+function decompose(cube, algorithm, num_imfs=6)
+    indims = InDims("Time")
+    imfax = CategoricalAxis("IntrinsicModeFunctions", [("IMF " .* string(1:num_imfs))..., "Residual"])
+    od = OutDims(imfax, )
+    timeax = ESDL.getAxis("Time", cube)
+    mapCube(cubeemd!, (cube, timeax), indims=(indims, indims), outdims=od)
 
+end
 
+function cubeemd!(xout, xin, times, num_imfs)
+    ts = collect(skipmissing(xin))
+    ind = .!ismissing.(xin)
+    @show xin[ind], times[ind]
+
+end
+
+function lombscargle(cube, kwargs...)
+    indims = InDims("Time")
+    lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Maximal Power"])
+    @show cube
+    timeax = ESDL.getAxis("Time", cube)
+    od = OutDims(lombax)
+    mapCube(clombscargle, (cube, timeax), indims=(indims, indims), outdims=od)
+end
+
+function clombscargle(xout, xin, times)
+    ind = .!ismissing.(xin)
+    ts = collect(nonmissingtype(eltype(xin)), xin[ind])
+    x = times[ind]
+    if length(x) < 10
+        xout .= [missing, missing]
+        return
+    end
+    datediff = Date.(x) .- Date(x[1])
+    dateint = getproperty.(datediff, :value)
+    pl = LombScargle.plan(dateint, ts)
+    #@show pl
+    pgram = LombScargle.lombscargle(pl)
+    #@show findmaxfreq(pgram), findmaxpower(pgram)
+    xout .= [LombScargle.M(pgram), findmaxpower(pgram)]
+end
 
 end # module
