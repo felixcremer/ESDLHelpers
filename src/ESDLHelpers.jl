@@ -5,7 +5,7 @@ using Statistics
 using RecurrenceAnalysis
 using DataStructures
 using StatsBase:skewness, kurtosis, mad
-using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
+#using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
 using LombScargle
 
 """
