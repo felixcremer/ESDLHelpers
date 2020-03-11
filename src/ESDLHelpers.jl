@@ -16,9 +16,9 @@ Compute the multi temporal statistics of a cube with temporal axis and return a 
 function timestats(cube;kwargs...)
 
     indims = InDims("Time")
-    funcs = OrderedDict("Mean"=>mean, "5th Quantile"=>x->quantile(x,.05),
-            "25th Quantile" => x->quantile(x, 0.25), "Median" => median,
-            "75th Quantile" => x->quantile(x,0.75), "95th Quantile" =>x->quantile(x,0.95),
+    funcs = OrderedDict("Mean"=>mean, #"5th Quantile"=>x->quantile(x,.05),
+            #"25th Quantile" => x->quantile(x, 0.25), "Median" => median,
+            #"75th Quantile" => x->quantile(x,0.75), "95th Quantile" =>x->quantile(x,0.95),
             "Standard Deviation" => std, "Minimum" => minimum, "Maximum" => maximum,
             "Skewness" => skewness, "Kurtosis" => kurtosis, "Median Absolute Deviation" =>mad)
 
