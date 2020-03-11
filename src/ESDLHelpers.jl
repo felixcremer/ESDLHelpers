@@ -83,4 +83,11 @@ function clombscargle(xout, xin, times)
     xout .= [lsnum, lsperiod[1], lspower]
 end
 
+function ctslength(xin)
+    ind = .!ismissing.(xin)
+    return count(ind)
+end
+
+tslength(cube) = mapslices(ctslength, cube, dims="Time")
+
 end # module
