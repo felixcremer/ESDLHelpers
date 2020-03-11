@@ -54,7 +54,7 @@ end
 
 function lombscargle(cube, kwargs...)
     indims = InDims("Time")
-    lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Maximal Power"])
+    lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Period with maximal power", "Maximal Power"])
     @show cube
     timeax = ESDL.getAxis("Time", cube)
     od = OutDims(lombax)
@@ -65,8 +65,9 @@ function clombscargle(xout, xin, times)
     ind = .!ismissing.(xin)
     ts = collect(nonmissingtype(eltype(xin)), xin[ind])
     x = times[ind]
-    if length(x) < 10
-        xout .= [missing, missing]
+    if length(ts) < 10
+        @show length(ts)
+        xout .= missing
         return
     end
     datediff = Date.(x) .- Date(x[1])
@@ -74,8 +75,12 @@ function clombscargle(xout, xin, times)
     pl = LombScargle.plan(dateint, ts)
     #@show pl
     pgram = LombScargle.lombscargle(pl)
+    lsperiod= findmaxperiod(pgram)
+    lspower = findmaxpower(pgram)
+    lsnum = LombScargle.M(pgram)
+    #@show lsperiod, lspower
     #@show findmaxfreq(pgram), findmaxpower(pgram)
-    xout .= [LombScargle.M(pgram), findmaxpower(pgram)]
+    xout .= [lsnum, lsperiod[1], lspower]
 end
 
 end # module
