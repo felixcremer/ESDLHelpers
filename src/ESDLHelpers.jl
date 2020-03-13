@@ -4,7 +4,7 @@ using ESDL
 using Statistics
 using RecurrenceAnalysis
 using DataStructures
-using StatsBase:skewness, kurtosis, mad
+using StatsBase:skewness, kurtosis, mad, mean_and_std
 #using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
 using LombScargle
 
@@ -16,24 +16,27 @@ Compute the multi temporal statistics of a cube with temporal axis and return a 
 function timestats(cube;kwargs...)
 
     indims = InDims("Time")
-    funcs = OrderedDict("Mean"=>mean, #"5th Quantile"=>x->quantile(x,.05),
-            #"25th Quantile" => x->quantile(x, 0.25), "Median" => median,
-            #"75th Quantile" => x->quantile(x,0.75), "95th Quantile" =>x->quantile(x,0.95),
+    funcs = OrderedDict("Mean"=>mean, "5th Quantile"=>x->quantile(x,.05),
+            "25th Quantile" => x->quantile(x, 0.25), "Median" => median,
+            "75th Quantile" => x->quantile(x,0.75), "95th Quantile" =>x->quantile(x,0.95),
             "Standard Deviation" => std, "Minimum" => minimum, "Maximum" => maximum,
             "Skewness" => skewness, "Kurtosis" => kurtosis, "Median Absolute Deviation" =>mad)
-
-    stataxis = CategoricalAxis("Stats", collect(keys(funcs)))
+    statsnames = ["Minimum","5th Quantile", "25th Quantile", "Median","75th Quantile", "95th Quantile",
+            "Maximum", "Mean", "Standard Deviation", "Skewness", "Kurtosis", "Median Absolute Deviation"]
+    stataxis = CategoricalAxis("Stats", statsnames)
     od = OutDims(stataxis)
     stats = mapCube(ctimestats!, cube, funcs, indims=indims, outdims=od, kwargs...)
 end
 
 function ctimestats!(xout, xin, funcs)
     ts = collect(skipmissing(xin))
-    stats = []
-    for func in values(funcs)
-        push!(stats, func(ts))
-    end
-    xout .=stats
+    mints, maxts = extrema(ts)
+    quantiles = quantile(ts, [0.05, 0.25, .5, 0.75, 0.95])
+    meants, stdts = mean_and_std(ts)
+    skew = skewness(ts)
+    kurt = kurtosis(ts)
+    madts = mad(ts, normalize=false)
+    xout .= [mints, quantiles..., maxts, meants, stdts, skew, kurt, madts]
 end
 
 function decompose(cube, algorithm, num_imfs=6)
