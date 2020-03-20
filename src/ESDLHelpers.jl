@@ -12,7 +12,7 @@ using LombScargle
 export timestats, lombscargle, tslength
 
 include("tsanalysis.jl")
-
+include("shapesampling.jl")
 
 
 
