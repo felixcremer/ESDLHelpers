@@ -8,6 +8,9 @@ using StatsBase:skewness, kurtosis, mad
 #using EmpiricalModeDecomposition; const EMD=EmpiricalModeDecomposition
 using LombScargle
 
+
+export timestats, lombscargle, tslength
+
 """
 timestats(cube, )
 
