@@ -35,6 +35,28 @@ function decompose(cube, algorithm, num_imfs=6)
 
 end
 
+function rqats(cube::ESDL.Cubes.AbstractCubeData, dist=1)
+    indims = InDims("Time")
+    r = rqa(RecurrenceMatrix(rand(10), 1))
+    rqanames = string.(keys(r))
+    @show rqanames
+    rqaaxis = CategoricalAxis("RQA Metrics", collect(rqanames))
+    @show rqaaxis
+    od = OutDims(rqaaxis)
+    @show dist
+    @show od
+    mapCube(crqa!, cube, indims=indims, outdims=od)
+end
+
+
+
+function crqa!(xout, xin)
+    ts = collect(skipmissing(xin))
+    rp = RecurrenceMatrix(ts, 1)
+    xout .= values(rqa(rp))
+end
+
+
 function cubeemd!(xout, xin, times, num_imfs)
     ts = collect(skipmissing(xin))
     ind = .!ismissing.(xin)
