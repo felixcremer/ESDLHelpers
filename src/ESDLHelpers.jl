@@ -14,6 +14,9 @@ export timestats, lombscargle, tslength
 include("tsanalysis.jl")
 include("shapesampling.jl")
 
+include("gdalcubes.jl")
+
+
 
 
 end # module
