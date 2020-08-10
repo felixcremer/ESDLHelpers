@@ -6,23 +6,28 @@ Compute the multi temporal statistics of a cube with temporal axis and return a 
 function timestats(cube;kwargs...)
 
     indims = InDims("Time")
-    funcs = OrderedDict("Mean"=>mean, #"5th Quantile"=>x->quantile(x,.05),
-            #"25th Quantile" => x->quantile(x, 0.25), "Median" => median,
-            #"75th Quantile" => x->quantile(x,0.75), "95th Quantile" =>x->quantile(x,0.95),
-            "Standard Deviation" => std, "Minimum" => minimum, "Maximum" => maximum,
-            "Skewness" => skewness, "Kurtosis" => kurtosis, "Median Absolute Deviation" =>mad)
+    funcs = ["Mean", "5th Quantile", "25th Quantile", "Median", "75th Quantile", "95th Quantile",
+            "Standard Deviation", "Minimum", "Maximum",
+            "Skewness", "Kurtosis", "Median Absolute Deviation"]
 
-    stataxis = CategoricalAxis("Stats", collect(keys(funcs)))
+    stataxis = CategoricalAxis("Stats", funcs)
     od = OutDims(stataxis)
-    stats = mapCube(ctimestats!, cube, funcs, indims=indims, outdims=od, kwargs...)
+    stats = mapCube(ctimestats!, cube, indims=indims, outdims=od, kwargs...)
 end
 
-function ctimestats!(xout, xin, funcs)
+function ctimestats!(xout, xin)
     ts = collect(skipmissing(xin))
-    stats = []
-    for func in values(funcs)
-        push!(stats, func(ts))
-    end
+    m = mean(ts)
+    T = eltype(m)
+    stats = Vector{T}(undef,12)
+    stats[1] = m
+    stats[2:6] = quantile(ts, [0.05,0.25,0.5, 0.75,0.95])
+    stats[7] = std(ts)
+    stats[8] = minimum(ts)
+    stats[9] = maximum(ts)
+    stats[10] = skewness(ts)
+    stats[11] = kurtosis(ts)
+    stats[12] = mad(ts, normalize=true)
     xout .=stats
 end
 
