@@ -28,8 +28,8 @@ function randinds(cube, shppath::AbstractString, polygon;seed=123,nsamples=25, w
     else
         shpestcube=ESDL.cubefromshape(shppath, cube,wrap=wrap)
     end
-    @show shpestcube
-    @info findall(skipmissing(.!iszero.(shpestcube.data)))
+    #@show shpestcube
+    #@info findall(skipmissing(.!iszero.(shpestcube.data)))
     randinds(cube, shpestcube, polygon, seed=seed, nsamples=nsamples)
 end
 
@@ -57,6 +57,14 @@ function getsample(cube, shpcube, polygon, axnum; seed=123,nsamples=25)
     return axnonmiss, nonmissinds
 end
 
+function getsample(cube, shpcube, polygon; seed=123,nsamples=25)
+    @info cube, shpcube, polygon
+    inds = randinds(cube,shpcube, polygon, seed=seed, nsamples=nsamples)
+    axvals = [cube[ind.I...,:] for ind in inds]
+    nonmissinds = [.!ismissing.(ts) for ts in axvals]
+    axnonmiss = [ax[nonmissinds[i]] for (i,ax) in enumerate(axvals)]
+    return axnonmiss, nonmissinds
+end
 function getall(shpcube, metric, ax)
     T =eltype(metric)
     shpmetric = []
