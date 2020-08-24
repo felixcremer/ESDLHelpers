@@ -88,3 +88,49 @@ ESDL.Cubes.renameaxis!(cube, "Band"=>taxis)
 return cube
 end
 #Tryout chunking the data
+
+
+function getbandnames(dataset)
+   meta = AG.metadata(dataset)
+   meta_split = map(x->split(x, "="),meta)
+   #str = collect(meta_split[1])
+   #print(typeof(meta_split[1]))
+   #by_func = x -> parse(Int,replace(match(r"_\d",x[1]).match,"_",""))
+   filter!(x->occursin(r"^Band",x[1]),meta_split)
+   by_func =  x-> parse(Int, replace(match(r"_(?<number>\d+)", x[1])[:number], "_" => ""))
+   sort!(meta_split, by = by_func)
+   #map(x->x[1],meta_split)
+   map(x->x[2],meta_split)
+end
+
+
+"""
+extracts the dates from the bandnames in format "yyyy-mm-dd"
+
+Parameters:
+-----------
+    input: an array of the 'full' band names 
+    reg: a reqular expression to find a pattern matching the dates in a 'full' band name
+    df: format of the date to be converted
+
+Returns:
+-------
+    array with the dates
+"""
+function getdates(input::Array{T} where T<:AbstractString, reg = r"[0-9]{8}", df = dateformat"yyyymmdd")
+            dates = map(x->Dates.Date(match(reg, x).match,df), input)
+            #strdates = map(x-> Dates.format(x, "yyyy-mm-dd"), dates)
+            #@show dates
+end
+
+#=
+function getbandnames(dataset)
+   metadata = AG.metadata(dataset)
+   metaarray = split.(bandnames, "=")
+   bandnames = String[]
+   for meta in metaarray
+      if "Band" in meta[1]
+         bandnumber = split(meta[1], "_")[2]
+         push!()
+
+=#
