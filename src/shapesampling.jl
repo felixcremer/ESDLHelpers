@@ -15,7 +15,7 @@ function neg2miss!(pix)
     pix
 end
 
-function randinds(cube, shpcube::ESDL.Cubes.AbstractCubeData, polygon; seed=123, nsamples=25)
+function randinds(cube, shpcube::YAXArrays.YAXArray, polygon; seed=123, nsamples=25)
 shpinds=getinds(shpcube, polygon)
 @info length(shpinds)
 Random.seed!(seed)
