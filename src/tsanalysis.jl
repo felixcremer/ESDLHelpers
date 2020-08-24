@@ -31,16 +31,19 @@ function ctimestats!(xout, xin)
     xout .=stats
 end
 
-function decompose(cube, algorithm, num_imfs=6)
+function decompose(cube, num_imfs=6)
     indims = InDims("Time")
-    imfax = CategoricalAxis("IntrinsicModeFunctions", [("IMF " .* string(1:num_imfs))..., "Residual"])
-    od = OutDims(imfax, )
+    imfax = CategoricalAxis("IntrinsicModeFunctions", [(Ref("IMF ") .* string.(1:num_imfs))..., "Residual"])
+    @show imfax
+    @show length(imfax)
     timeax = ESDL.getAxis("Time", cube)
-    mapCube(cubeemd!, (cube, timeax), indims=(indims, indims), outdims=od)
+    od = OutDims(imfax, timeax)
 
+    dateint = intify(cube)
+    mapCube(cubeemd!, cube, dateint, num_imfs,  indims=indims, outdims=od)
 end
 
-function rqats(cube::ESDL.Cubes.AbstractCubeData, dist=1)
+function rqats(cube::YAXArrays.Cubes.YAXArray, dist=1)
     indims = InDims("Time")
     r = rqa(RecurrenceMatrix(rand(10), 1))
     rqanames = string.(keys(r))
@@ -65,30 +68,34 @@ end
 function cubeemd!(xout, xin, times, num_imfs)
     ts = collect(skipmissing(xin))
     ind = .!ismissing.(xin)
-    @show xin[ind], times[ind]
-
+    dateint = times[ind]
+    @show size(xout)
+    imfs = EMD.ceemd(ts, dateint, num_imfs=num_imfs)
+    @show length(imfs)
+    for i in 1:length(imfs)
+    
+        xout[i,:] .= imfs[i]
+    end
 end
 
 function lombscargle(cube, kwargs...)
     indims = InDims("Time")
     lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Period with maximal power", "Maximal Power"])
     @show cube
-    timeax = ESDL.getAxis("Time", cube)
+    dateint = intify(cube)
     od = OutDims(lombax)
-    mapCube(clombscargle, (cube, timeax), indims=(indims, indims), outdims=od)
+    mapCube(clombscargle, cube, dateint, indims=indims, outdims=od)
 end
 
 function clombscargle(xout, xin, times)
     ind = .!ismissing.(xin)
     ts = collect(nonmissingtype(eltype(xin)), xin[ind])
-    x = times[ind]
+    dateint = times[ind]
     if length(ts) < 10
         @show length(ts)
         xout .= missing
         return
     end
-    datediff = Date.(x) .- Date(x[1])
-    dateint = getproperty.(datediff, :value)
     pl = LombScargle.plan(dateint, ts)
     #@show pl
     pgram = LombScargle.lombscargle(pl)
@@ -106,3 +113,10 @@ function ctslength(xin)
 end
 
 tslength(cube) = mapslices(ctslength, cube, dims="Time")
+
+function intify(cube)
+    timeax = ESDL.getAxis("Time", cube)
+    x = timeax.values
+    datediff = Date.(x) .- Date(x[1])
+    dateint = getproperty.(datediff, :value)
+end
